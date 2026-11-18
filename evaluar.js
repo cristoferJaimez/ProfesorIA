@@ -160,7 +160,12 @@
     return f;
   }
 
+  // Evita enviar la misma evaluación dos veces (doble toque o escribir mientras se envía)
+  let enviando = false;
   async function enviar() {
+    if (enviando) return;
+    enviando = true;
+    raiz.querySelectorAll('button, textarea, input, select').forEach((el) => { el.disabled = true; });
     const f = fila();
     const todas = leer(CLAVE_EVAL, []);
     todas.push(f);
@@ -205,6 +210,8 @@
     const b = ev.target.closest('button');
     if (!b) return;
     const d = b.dataset;
+    if ('nueva' in d) { enviando = false; EV = nueva(); return render(true); }
+    if (enviando) return;
     capturar();
     if (d.set) {
       EV.r[d.set] = 'num' in d ? Number(d.valor) : d.valor;
@@ -234,6 +241,7 @@
     if ('csv' in d) return descargarCSV();
   });
   raiz.addEventListener('input', (ev) => {
+    if (enviando) return;
     if (['ev-iniciales', 'ev-texto'].includes(ev.target.id)) {
       capturar();
       const b = raiz.querySelector('[data-sig]');
