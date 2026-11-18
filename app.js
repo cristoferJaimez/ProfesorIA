@@ -566,8 +566,20 @@
     if (!V[vista]) vista = E.usuario ? 'inicio' : 'bienvenida';
     if (vista !== 'leccion') L = null;
     cerrarHoja();
+    // Solo se vuelve arriba (y se anima la entrada) al cambiar de pantalla o de paso;
+    // al seleccionar algo dentro de la misma pantalla se conserva la posición.
+    const llave = `${location.hash}|${L ? L.paso : ''}|${EV ? EV.paso : ''}|${vista === 'explorar' ? seccion : ''}`;
+    const misma = llave === render.llave;
+    const pos = app.scrollTop;
+    render.llave = llave;
     app.innerHTML = V[vista](partes[1]);
-    app.scrollTop = 0;
+    const v = app.firstElementChild;
+    if (misma) {
+      if (v) [v, ...v.querySelectorAll('.paso, .medalla')].forEach((el) => { el.style.animation = 'none'; });
+      app.scrollTop = pos;
+    } else {
+      app.scrollTop = 0;
+    }
     const conMenu = !!E.usuario && ['inicio', 'explorar', 'perfil', 'planes', 'panel'].includes(vista);
     menu.classList.toggle('visible', conMenu);
     const activa = TABS[vista] ? vista : 'perfil';
