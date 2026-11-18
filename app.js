@@ -37,6 +37,7 @@
 
   // Enlace directo a la evaluación (?evaluar=1), útil para compartir con los participantes
   if (new URLSearchParams(location.search).has('evaluar') && !location.hash) location.hash = '#/evaluar';
+  if (new URLSearchParams(location.search).has('bocetos') && !location.hash) location.hash = '#/bocetos';
 
   // ---------- Utilidades ----------
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -87,7 +88,9 @@
       <div class="grupo empuje">
         <button class="btn" data-ir="#/registro">Empezar gratis</button>
         <button class="btn sec" data-ir="#/ingresar">Ya tengo cuenta</button>
-        <button class="btn sec" data-ir="#/evaluar">Evaluar el prototipo</button>
+        <div class="fila" style="justify-content:center;gap:4px">
+          <button class="enlace" data-ir="#/bocetos" style="color:#fff">Ver bocetos</button><span aria-hidden="true">·</span>
+          <button class="enlace" data-ir="#/evaluar" style="color:#fff">Evaluar el prototipo</button></div>
         <p class="version">Prototipo · datos simulados</p>
       </div>
     </section>`;
@@ -169,14 +172,33 @@
       <div class="fila saludo"><div class="crece"><h2>Hola, ${esc(nombreCorto())}</h2><p class="pequeno">${hechasRuta()} de ${E.ruta.length} lecciones · Nivel ${E.nivel || 'Principiante'}</p></div>
         <span class="puntos" aria-label="${puntos()} puntos">★ ${puntos()}</span></div>
       ${l ? `<div class="siguiente">
-          <p class="suave pequeno">Siguiente lección · ${l.min} min</p>
+          <p class="suave pequeno">${E.numRuta > 1 ? `Ruta ${E.numRuta} · ` : ''}Siguiente lección · ${l.min} min</p>
           <h2>${l.titulo}</h2>
-          <button class="btn" data-abrir-leccion="${l.id}">${hechasRuta() ? 'Continuar' : 'Empezar'}</button></div>`
-        : `<div class="siguiente"><h2>¡Terminó su ruta!</h2><p class="suave">Siga aprendiendo en Explorar.</p><button class="btn" data-ir="#/explorar">Explorar</button></div>`}
-      <div class="camino">${camino}</div>
+          <button class="btn" data-abrir-leccion="${l.id}">${hechasRuta() ? 'Continuar' : 'Empezar'}</button></div>
+        <div class="camino">${camino}</div>`
+        : rutaTerminada()}
       ${hechasRuta() ? '<button class="item" data-ir="#/evaluar"><span class="icono" style="background:var(--verde-claro);color:var(--verde)">★</span><span class="crece"><h3>¿Qué le pareció ProfeIA?</h3><span class="suave pequeno">Evalúe el prototipo en 3 minutos</span></span><span class="flecha">›</span></button>' : ''}
     </section>`;
   };
+
+  function rutaTerminada() {
+    const restantes = DATOS.lecciones.filter((x) => !E.completadas.includes(x.id));
+    const siguienteRuta = restantes.slice(0, 5);
+    return `<div class="siguiente centro" style="align-items:center">
+        <div class="medalla medalla-p" aria-hidden="true">★</div>
+        <h2>¡Completó su ruta${E.numRuta > 1 ? ' ' + E.numRuta : ''}!</h2>
+        <p class="suave">${E.ruta.length} lecciones · ${E.ruta.length * PUNTOS_LECCION} puntos ganados</p>
+        ${siguienteRuta.length
+          ? `<button class="btn" data-nueva-ruta>Empezar ruta ${(E.numRuta || 1) + 1} · ${siguienteRuta.length} lecciones</button>`
+          : '<p>Completó todas las lecciones disponibles.</p>'}
+      </div>
+      <div class="grupo">
+        <button class="item" data-accion="certificado"><span class="icono" style="background:var(--amarillo-claro);color:#8a5a00">↓</span>
+          <span class="crece"><h3>Descargar certificado</h3><span class="suave pequeno">Constancia de la ruta completada</span></span><span class="flecha">›</span></button>
+        <div class="tarjeta grupo-s"><h3>Lo que aprendió</h3>
+          ${E.ruta.map((id) => `<p class="pequeno"><span style="color:var(--verde);font-weight:800">✓</span> ${leccion(id).titulo}</p>`).join('')}</div>
+      </div>`;
+  }
 
   // ---------- Lección por pasos ----------
   let L = null; // { id, paso, revisado, marcadas, detectorListo }
@@ -526,6 +548,20 @@
     if (tx) EV.r[tx.dataset.campo] = tx.value.trim();
   }
 
+  // Prototipo de baja resolución: bocetos para quienes evalúan a distancia
+  V.bocetos = () => `<section class="vista">
+      <div class="cabeza"><button class="cerrar" data-ir="#/${E.usuario ? 'inicio' : 'bienvenida'}" aria-label="Volver">‹</button><h2>Bocetos</h2></div>
+      <div class="grupo-s"><span class="etiqueta">Prototipo de baja resolución</span>
+        <p class="suave">Así se pensó ProfeIA al comienzo: 10 pantallas dibujadas en blanco y negro. Revíselas y luego cuéntenos qué le parecieron.</p></div>
+      <a class="tarjeta grupo-s" href="bocetos/mapa.png" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">
+        <h3>Mapa de navegación</h3><img class="boceto-mapa" src="bocetos/mapa.png" alt="Mapa de navegación de los bocetos" loading="lazy">
+        <span class="suave pequeno">Toque para ampliar</span></a>
+      ${EVALUACION.pantallas.bocetos.map(([, n], i) => `<figure class="tarjeta boceto">
+        <img src="bocetos/s${String(i + 1).padStart(2, '0')}.png" alt="Boceto: ${n}" loading="lazy">
+        <figcaption><b>${n}</b></figcaption></figure>`).join('')}
+      <div class="pie"><button class="btn verde" data-evaluar-bocetos>Evaluar estos bocetos</button></div>
+    </section>`;
+
   // Resultados guardados en este dispositivo (respaldo y evidencia)
   V.resultados = () => {
     const todas = leerEvaluaciones();
@@ -557,7 +593,7 @@
 
   // ---------- Enrutador ----------
   const TABS = { inicio: ['⌂', 'Inicio'], explorar: ['◎', 'Explorar'], perfil: ['◉', 'Perfil'] };
-  const PUBLICAS = ['bienvenida', 'ingresar', 'registro', 'evaluar', 'resultados'];
+  const PUBLICAS = ['bienvenida', 'ingresar', 'registro', 'evaluar', 'resultados', 'bocetos'];
 
   function render() {
     const partes = (location.hash || '#/').replace(/^#\/?/, '').split('/');
@@ -601,6 +637,11 @@
       avisar('Prototipo reiniciado'); ir('#/bienvenida');
     },
     cotizar: () => avisar('Solicitud enviada (simulado)'),
+    certificado: () => {
+      const u = E.usuario || {};
+      descargar('ProfeIA - Certificado (demo).txt', `CERTIFICADO DE PARTICIPACIÓN (DEMOSTRACIÓN)\n\nProfeIA certifica que ${u.nombre || 'el docente'} completó la ruta de aprendizaje:\n\n`
+        + E.ruta.map((id) => '- ' + leccion(id).titulo).join('\n') + `\n\nFecha: ${new Date().toLocaleDateString('es-CO')}\n\nDocumento de prueba generado por el prototipo.`);
+    },
     reporte: () => descargar('ProfeIA - Reporte del colegio (demo).txt', 'REPORTE DE DEMOSTRACIÓN\n\n' + DATOS.panel.map((x) => `${x.nombre}: ${x.avance}%`).join('\n')),
   };
 
@@ -642,7 +683,13 @@
       EV.paso -= 1;
       return render();
     }
+    if ('nuevaRuta' in d) {
+      E.ruta = DATOS.lecciones.filter((x) => !E.completadas.includes(x.id)).slice(0, 5).map((x) => x.id);
+      E.numRuta = (E.numRuta || 1) + 1;
+      guardar(); avisar(`Ruta ${E.numRuta} lista`); return render();
+    }
     if ('evalNueva' in d) { EV = evalNueva(); return render(); }
+    if ('evaluarBocetos' in d) { EV = evalNueva(); EV.r.version = 'bocetos'; return ir('#/evaluar'); }
     if ('descargarCsv' in d) return descargarCSV();
     if (d.ir) return ir(d.ir);
     if ('atras' in d) return history.back();
