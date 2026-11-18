@@ -28,10 +28,22 @@ Proyecto académico del módulo Emprendimiento de Base Tecnológica (Politécnic
 | 11 | Recordatorio diario | Perfil |
 | 12 | Planes y panel del colegio | Perfil |
 
-## Cómo verlo
+## Páginas del sitio
 
-- Con un servidor local: `python -m http.server 8765` y abrir `http://localhost:8765`.
-- Modo demostración (entra con un docente de ejemplo): `http://localhost:8765/?demo=1`.
+| Página | Para qué |
+|---|---|
+| `index.html` | Guía para los participantes: 4 pasos (ver bocetos, evaluarlos, probar la app, evaluarla) |
+| `bocetos.html` | Prototipo de baja resolución: mapa de navegación y 10 bocetos |
+| `app.html` | Prototipo de alta resolución (app en el celular) |
+| `app.html?demo=1` | La app con un docente de ejemplo, sin registrarse |
+| `app.html?evaluar=bocetos` / `?evaluar=app` | Evaluación con la versión ya elegida |
+| `app.html#/resultados` | Evaluaciones guardadas en el dispositivo y descarga en CSV |
+
+Para verlo en local: `python -m http.server 8765` y abrir `http://localhost:8765`.
+
+## Evaluación y comportamiento de uso
+
+Las evaluaciones se envían a una hoja de Google Sheets (ver [`evaluacion/README.md`](evaluacion/README.md)). La evaluación de la app incluye además el comportamiento de uso de quien la respondió en ese dispositivo: pantallas visitadas, lecciones completadas y minutos en la app.
 
 ## Importante
 

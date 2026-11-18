@@ -15,7 +15,7 @@
   const inicial = () => ({
     usuario: null, diag: [], nivel: null, ruta: DATOS.ruta.slice(),
     completadas: [], guardadas: [], posts: [], likes: {},
-    recordatorio: { on: false, hora: '6 p. m.' }, plan: 'gratis',
+    recordatorio: { on: false, hora: '6 p. m.' }, plan: 'gratis', uso: { inicio: Date.now(), vistas: [] },
   });
   let E = inicial();
   try {
@@ -32,12 +32,32 @@
     E.diag = [1, 0, 1, 1, 0];
     E.nivel = 'Intermedio';
     E.ruta = ['l1', 'l2', 'l3', 'l5', 'l6'];
-    E.completadas = ['l1'];
+    E.completadas = [];
   }
 
   // Enlace directo a la evaluación (?evaluar=1), útil para compartir con los participantes
-  if (new URLSearchParams(location.search).has('evaluar') && !location.hash) location.hash = '#/evaluar';
-  if (new URLSearchParams(location.search).has('bocetos') && !location.hash) location.hash = '#/bocetos';
+  // ?evaluar=bocetos | ?evaluar=app abre la evaluación con la versión ya elegida
+  const PARAMS = new URLSearchParams(location.search);
+  const VERSION_INICIAL = ['bocetos', 'app'].includes(PARAMS.get('evaluar')) ? PARAMS.get('evaluar') : 'app';
+  if (PARAMS.has('evaluar') && !location.hash) location.hash = '#/evaluar';
+  if (PARAMS.has('bocetos')) location.replace('bocetos.html');
+
+  // Guía de participantes (index.html): marca los pasos completados en este dispositivo
+  function marcarGuia(paso) {
+    try {
+      const g = JSON.parse(localStorage.getItem('profeia-guia') || '{}');
+      g[paso] = true;
+      localStorage.setItem('profeia-guia', JSON.stringify(g));
+    } catch (e) { console.warn('No se pudo marcar el paso de la guía.', e); }
+  }
+
+  // Comportamiento de uso (Guía 2, punto 4.3): pantallas visitadas y tiempo en la app
+  if (!E.uso) E.uso = { inicio: Date.now(), vistas: [] };
+  function registrarUso(vista) {
+    if (!E.uso.vistas.includes(vista)) E.uso.vistas.push(vista);
+    E.uso.ultimo = Date.now();
+    guardar();
+  }
 
   // ---------- Utilidades ----------
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -88,9 +108,6 @@
       <div class="grupo empuje">
         <button class="btn" data-ir="#/registro">Empezar gratis</button>
         <button class="btn sec" data-ir="#/ingresar">Ya tengo cuenta</button>
-        <div class="fila" style="justify-content:center;gap:4px">
-          <button class="enlace" data-ir="#/bocetos" style="color:#fff">Ver bocetos</button><span aria-hidden="true">·</span>
-          <button class="enlace" data-ir="#/evaluar" style="color:#fff">Evaluar el prototipo</button></div>
         <p class="version">Prototipo · datos simulados</p>
       </div>
     </section>`;
@@ -258,6 +275,9 @@
         : `<button class="btn" data-detector ${L.marcadas.size ? '' : 'disabled'}>Comprobar</button>`;
     } else {
       if (!E.completadas.includes(id)) { E.completadas.push(id); guardar(); }
+      if (!E.uso.lecciones) E.uso.lecciones = [];
+      if (!E.uso.lecciones.includes(id)) { E.uso.lecciones.push(id); guardar(); }
+      marcarGuia('usoApp');
       const colores = ['#f5b83d', '#2b5aa0', '#2e8b57', '#c0392b', '#7fb3ff'];
       const confeti = Array.from({ length: 28 }, (_, i) => `<i style="left:${(i * 37) % 100}%;background:${colores[i % 5]};animation-delay:${(i % 7) * 0.08}s"></i>`).join('');
       return `<section class="vista fin"><div class="confeti" aria-hidden="true">${confeti}</div>
@@ -432,7 +452,7 @@
   // ---------- Evaluación del prototipo (Guía 2, punto 4) ----------
   const CLAVE_EVAL = 'profeia-evaluaciones';
   let EV = null; // { paso, r: respuestas }
-  const evalNueva = () => ({ paso: 0, r: { version: 'app', pantallas: {} } });
+  const evalNueva = () => ({ paso: 0, r: { version: VERSION_INICIAL, pantallas: {} } });
   const leerEvaluaciones = () => { try { return JSON.parse(localStorage.getItem(CLAVE_EVAL) || '[]'); } catch (e) { console.warn(e); return []; } };
   const guardarEvaluacion = (fila) => {
     const todas = leerEvaluaciones();
@@ -461,7 +481,7 @@
       return `<section class="vista fin">
         <div class="medalla" aria-hidden="true">✓</div>
         <div class="grupo-s"><h1>¡Gracias!</h1><p class="suave">${EV.enviado ? 'Su evaluación fue enviada.' : 'Su evaluación quedó guardada en este dispositivo.'} Sus respuestas ayudan a mejorar ProfeIA.</p></div>
-        <div class="pie" style="width:100%"><button class="btn" data-eval-nueva>Nueva evaluación</button><button class="btn sec" data-ir="#/${E.usuario ? 'inicio' : 'bienvenida'}">Volver a la app</button></div>
+        <div class="pie" style="width:100%"><a class="btn" href="index.html" style="text-decoration:none">Volver a la guía</a><button class="btn sec" data-eval-nueva>Nueva evaluación</button></div>
       </section>`;
     }
     let cuerpo = '';
@@ -515,6 +535,14 @@
       iniciales: r.iniciales, area: r.area, rol: r.rol, primera_encuesta: r.primera_encuesta };
     EVALUACION.pantallas[r.version].forEach(([id, n]) => { fila['pantalla: ' + n] = r.pantallas[id]; });
     fila.comentario_pantallas = r.comentario_pantallas || '';
+    if (r.version === 'app') {
+      const nombres = { bienvenida: 'Bienvenida', registro: 'Registro', ingresar: 'Ingreso', diagnostico: 'Diagnóstico', resultado: 'Resultado',
+        inicio: 'Inicio', leccion: 'Lección', explorar: 'Explorar', perfil: 'Perfil', planes: 'Planes', panel: 'Panel del colegio' };
+      const u = E.uso || { vistas: [] };
+      fila['uso: pantallas visitadas'] = u.vistas.filter((v) => nombres[v]).map((v) => nombres[v]).join('; ');
+      fila['uso: lecciones completadas'] = (u.lecciones || []).length;
+      fila['uso: minutos en la app'] = u.ultimo ? Math.max(1, Math.round((u.ultimo - u.inicio) / 60000)) : 0;
+    }
     EVALUACION.preguntas.forEach((q) => {
       const v = r[q.id];
       fila[q.id] = Array.isArray(v) ? v.join('; ') : (v ?? '');
@@ -525,6 +553,7 @@
   async function enviarEvaluacion() {
     const fila = filaEvaluacion();
     guardarEvaluacion(fila);
+    marcarGuia(EV.r.version === 'app' ? 'evalApp' : 'evalBocetos');
     EV.enviado = false;
     if (ENDPOINT_EVALUACION) {
       try {
@@ -548,19 +577,8 @@
     if (tx) EV.r[tx.dataset.campo] = tx.value.trim();
   }
 
-  // Prototipo de baja resolución: bocetos para quienes evalúan a distancia
-  V.bocetos = () => `<section class="vista">
-      <div class="cabeza"><button class="cerrar" data-ir="#/${E.usuario ? 'inicio' : 'bienvenida'}" aria-label="Volver">‹</button><h2>Bocetos</h2></div>
-      <div class="grupo-s"><span class="etiqueta">Prototipo de baja resolución</span>
-        <p class="suave">Así se pensó ProfeIA al comienzo: 10 pantallas dibujadas en blanco y negro. Revíselas y luego cuéntenos qué le parecieron.</p></div>
-      <a class="tarjeta grupo-s" href="bocetos/mapa.png" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">
-        <h3>Mapa de navegación</h3><img class="boceto-mapa" src="bocetos/mapa.png" alt="Mapa de navegación de los bocetos" loading="lazy">
-        <span class="suave pequeno">Toque para ampliar</span></a>
-      ${EVALUACION.pantallas.bocetos.map(([, n], i) => `<figure class="tarjeta boceto">
-        <img src="bocetos/s${String(i + 1).padStart(2, '0')}.png" alt="Boceto: ${n}" loading="lazy">
-        <figcaption><b>${n}</b></figcaption></figure>`).join('')}
-      <div class="pie"><button class="btn verde" data-evaluar-bocetos>Evaluar estos bocetos</button></div>
-    </section>`;
+  // Los bocetos se ven en bocetos.html, fuera del marco de celular
+  V.bocetos = () => { location.replace('bocetos.html'); return ''; };
 
   // Resultados guardados en este dispositivo (respaldo y evidencia)
   V.resultados = () => {
@@ -602,6 +620,7 @@
     if (!V[vista]) vista = E.usuario ? 'inicio' : 'bienvenida';
     if (vista !== 'leccion') L = null;
     cerrarHoja();
+    if (E.usuario && !['evaluar', 'resultados'].includes(vista)) registrarUso(vista);
     // Solo se vuelve arriba (y se anima la entrada) al cambiar de pantalla o de paso;
     // al seleccionar algo dentro de la misma pantalla se conserva la posición.
     const llave = `${location.hash}|${L ? L.paso : ''}|${EV ? EV.paso : ''}|${vista === 'explorar' ? seccion : ''}`;

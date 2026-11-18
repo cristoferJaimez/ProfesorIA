@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>ProfeIA · Prototipo</title>
+  <meta name="description" content="Prototipo de alta resolución de ProfeIA: una app para que los docentes aprendan a usar la inteligencia artificial en su trabajo.">
+  <meta name="theme-color" content="#1d3f72">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="telefono">
+    <main id="app" aria-live="polite"></main>
+    <nav id="menu" class="menu" aria-label="Menú principal"></nav>
+    <div id="velo" class="velo" hidden>
+      <section id="hoja" class="hoja" role="dialog" aria-modal="true"></section>
+    </div>
+    <div id="aviso" class="aviso" role="status"></div>
+  </div>
+  <script src="datos.js"></script>
+  <script src="evaluacion.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

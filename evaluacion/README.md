@@ -17,10 +17,9 @@ La evaluación del prototipo (`#/evaluar`) envía cada respuesta como una fila a
 
 Desde ese momento, cada evaluación aparece como una fila nueva en la pestaña **Evaluaciones**.
 
-## Enlaces para los participantes
+## Enlace para los participantes
 
-- Evaluación directa: `https://<usuario>.github.io/profeia-prototipo/?evaluar=1`
-- Probar la app con un docente de ejemplo: `https://<usuario>.github.io/profeia-prototipo/?demo=1`
+Envíe un solo enlace: `https://cristoferjaimez.github.io/ProfesorIA/`. Es una guía de 4 pasos que lleva al participante por los bocetos, su evaluación, la app y su evaluación, y marca con ✓ lo que ya hizo.
 
 ## Respaldo
 
@@ -35,6 +34,7 @@ Cada evaluación también se guarda en el dispositivo donde se respondió. En `#
 | Representación, precisión e interactividad (1 a 5) | 2. Dimensiones |
 | Estado para la siguiente versión | 2. Dimensiones: evolución |
 | Mejora propuesta | 4. Tablas de sesiones (columna «Mejora propuesta») |
+| Uso: pantallas visitadas, lecciones completadas y minutos (solo app) | 4.3 Comportamiento de los participantes |
 
 ## Privacidad
 

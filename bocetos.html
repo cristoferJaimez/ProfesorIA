@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>ProfeIA · Bocetos</title>
+  <meta name="description" content="Prototipo de baja resolución de ProfeIA: 10 bocetos de pantalla y el mapa de navegación.">
+  <meta name="theme-color" content="#1d3f72">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="pagina.css">
+</head>
+<body>
+  <div class="barra-sup"><div class="contenedor"><a href="index.html">‹ Volver a la guía</a><span>Paso 1 de 4</span></div></div>
+  <main class="contenedor" style="margin-top:0">
+    <section class="intro">
+      <h1>Bocetos de ProfeIA</h1>
+      <p>Así se pensó la app al comienzo: 10 pantallas dibujadas en blanco y negro, sin colores ni contenido final. Los garabatos representan textos y los recuadros con X, imágenes. Mírelas con calma; en el siguiente paso las va a calificar.</p>
+    </section>
+
+    <section class="tarjeta mapa">
+      <h2>Mapa de navegación</h2>
+      <a href="bocetos/mapa.png" target="_blank" rel="noopener"><img src="bocetos/mapa.png" alt="Mapa de navegación entre las 10 pantallas de los bocetos"></a>
+      <a href="bocetos/mapa.png" target="_blank" rel="noopener">Ampliar el mapa</a>
+    </section>
+
+    <h2 class="seccion-t">Las 10 pantallas</h2>
+    <div class="rejilla" id="rejilla"></div>
+
+    <div class="cta"><a class="btn verde" href="app.html?evaluar=bocetos">Ya los vi: evaluar los bocetos</a></div>
+  </main>
+
+  <script>
+    (function () {
+      var nombres = ['Registro e inicio de sesión', 'Perfil del docente', 'Diagnóstico inicial', 'Ruta «por dónde empezar»', 'Lecciones por tarea',
+        'Lección corta', 'Práctica con una tarea real', 'Fichas de herramientas', 'Uso responsable', 'Planes y licencias'];
+      document.getElementById('rejilla').innerHTML = nombres.map(function (n, i) {
+        var f = 'bocetos/s' + String(i + 1).padStart(2, '0') + '.png';
+        return '<figure class="tarjeta"><a href="' + f + '" target="_blank" rel="noopener"><img src="' + f + '" alt="Boceto ' + (i + 1) + ': ' + n + '" loading="lazy"></a>'
+          + '<figcaption>' + (i + 1) + '. ' + n + '</figcaption></figure>';
+      }).join('');
+      try {
+        var g = JSON.parse(localStorage.getItem('profeia-guia') || '{}');
+        g.vioBocetos = true;
+        localStorage.setItem('profeia-guia', JSON.stringify(g));
+      } catch (e) { console.warn(e); }
+    })();
+  </script>
+</body>
+</html>

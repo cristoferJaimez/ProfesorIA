@@ -3,25 +3,71 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>ProfeIA · Prototipo</title>
-  <meta name="description" content="Prototipo de alta resolución de ProfeIA: una app para que los docentes aprendan a usar la inteligencia artificial en su trabajo.">
+  <title>ProfeIA · Evalúe el prototipo</title>
+  <meta name="description" content="Ayúdenos a validar ProfeIA: vea los bocetos, pruebe la app y cuéntenos qué le pareció.">
   <meta name="theme-color" content="#1d3f72">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="pagina.css">
 </head>
 <body>
-  <div class="telefono">
-    <main id="app" aria-live="polite"></main>
-    <nav id="menu" class="menu" aria-label="Menú principal"></nav>
-    <div id="velo" class="velo" hidden>
-      <section id="hoja" class="hoja" role="dialog" aria-modal="true"></section>
+  <header class="portada">
+    <div class="contenedor">
+      <div class="logo" aria-hidden="true">IA</div>
+      <h1>Ayúdenos a mejorar ProfeIA</h1>
+      <p>Con las respuestas de nuestra primera encuesta diseñamos ProfeIA, una app para que los docentes aprendan a usar la inteligencia artificial en su trabajo. Ahora queremos su opinión.</p>
+      <p class="dato">4 pasos · unos 10 minutos · solo pedimos sus iniciales</p>
     </div>
-    <div id="aviso" class="aviso" role="status"></div>
-  </div>
-  <script src="datos.js"></script>
-  <script src="evaluacion.js"></script>
-  <script src="app.js"></script>
+  </header>
+
+  <main class="contenedor">
+    <ol class="pasos" id="pasos">
+      <li class="paso" data-paso="vioBocetos">
+        <span class="num" aria-hidden="true">1</span>
+        <div class="texto"><h2>Mire los bocetos</h2><p>Los primeros dibujos de la app, en papel. Dos minutos.</p></div>
+        <a class="btn" href="bocetos.html">Ver bocetos</a>
+      </li>
+      <li class="paso" data-paso="evalBocetos">
+        <span class="num" aria-hidden="true">2</span>
+        <div class="texto"><h2>Evalúe los bocetos</h2><p>Califique las pantallas y cuéntenos qué mejoraría.</p></div>
+        <a class="btn" href="app.html?evaluar=bocetos">Evaluar bocetos</a>
+      </li>
+      <li class="paso" data-paso="usoApp">
+        <span class="num" aria-hidden="true">3</span>
+        <div class="texto"><h2>Pruebe la app</h2><p>Haga una lección completa y explore las herramientas. Cinco minutos.</p></div>
+        <a class="btn" href="app.html?demo=1">Probar la app</a>
+      </li>
+      <li class="paso" data-paso="evalApp">
+        <span class="num" aria-hidden="true">4</span>
+        <div class="texto"><h2>Evalúe la app</h2><p>Su opinión después de usarla.</p></div>
+        <a class="btn" href="app.html?evaluar=app">Evaluar la app</a>
+      </li>
+    </ol>
+    <p class="final" id="final" hidden>¡Listo! Completó los 4 pasos. Muchas gracias por su tiempo.</p>
+    <p class="nota">Proyecto académico del módulo Emprendimiento de Base Tecnológica, Politécnico Grancolombiano. Es un prototipo: los datos de la app son de ejemplo y no se conecta a ninguna inteligencia artificial.</p>
+  </main>
+
+  <script>
+    // Marca los pasos que esta persona ya completó en este dispositivo
+    (function () {
+      var hechos = {};
+      try { hechos = JSON.parse(localStorage.getItem('profeia-guia') || '{}'); } catch (e) { console.warn(e); }
+      var pasos = document.querySelectorAll('.paso');
+      var listos = 0;
+      var siguienteMarcado = false;
+      pasos.forEach(function (li) {
+        if (hechos[li.dataset.paso]) {
+          li.classList.add('hecho');
+          li.querySelector('.num').textContent = '✓';
+          listos++;
+        } else if (!siguienteMarcado) {
+          li.classList.add('actual');
+          siguienteMarcado = true;
+        }
+      });
+      if (listos === pasos.length) document.getElementById('final').hidden = false;
+    })();
+  </script>
 </body>
 </html>
