@@ -2,7 +2,7 @@
 // Cada pregunta valida un punto de la Guía 2: 1 funcionalidades, 2 dimensiones, 3 implementación de los prototipos.
 // Para recibir las respuestas en Google Sheets, pegue aquí la URL de la aplicación web de Apps Script
 // (ver evaluacion/README.md). Si queda vacía, las respuestas se guardan en el dispositivo y se descargan en CSV.
-const ENDPOINT_EVALUACION = '';
+const ENDPOINT_EVALUACION = 'https://script.google.com/macros/s/AKfycbzYsTG7-xEPWDETrIj0JyKU2s3wDm8HZThTY3Iy3JRmBq3e6Hk0Af-XFQbaUh0JI-KMpw/exec';
 
 const EVALUACION = {
   // Punto 3: pantallas implementadas en cada prototipo
