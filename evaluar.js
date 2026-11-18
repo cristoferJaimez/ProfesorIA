@@ -120,23 +120,43 @@
     window.scrollTo(0, nuevoPaso ? 0 : pos);
   }
 
+  // Columnas de la hoja, en el orden de las tablas 4.1 y 4.2 de la entrega. Las columnas comunes van primero
+  // para que bocetos y app queden alineados; las calificaciones por pantalla van al final porque cambian según la versión.
+  const COLUMNAS = {
+    f_utiles: 'Funcionalidades más útiles', f_falta: 'Funcionalidad que falta', f_sobra: 'Funcionalidad que sobra',
+    d_representacion: 'Representación', d_precision: 'Precisión', d_interactividad: 'Interactividad', d_evolucion: 'Evolución',
+  };
   function fila() {
     const r = EV.r;
-    const f = { fecha: new Date().toISOString(), version: r.version === 'app' ? 'Alta resolución (app)' : 'Baja resolución (bocetos)',
-      iniciales: r.iniciales, area: r.area, rol: r.rol, primera_encuesta: r.primera_encuesta };
-    EVALUACION.pantallas[r.version].forEach(([id, n]) => { f['pantalla: ' + n] = r.pantallas[id]; });
-    f.comentario_pantallas = r.comentario_pantallas || '';
-    preguntas().forEach((q) => { const v = r[q.id]; f[q.id] = Array.isArray(v) ? v.join('; ') : (v ?? ''); });
+    const valor = (id) => { const v = r[id]; return Array.isArray(v) ? v.join('; ') : (v ?? ''); };
+    const f = {
+      'Fecha': new Date().toLocaleString('es-CO'),
+      'Versión': r.version === 'app' ? 'Alta resolución (app)' : 'Baja resolución (bocetos)',
+      'Iniciales': r.iniciales,
+      'Área': r.area,
+      'Rol': r.rol,
+      '¿Respondió la primera encuesta?': r.primera_encuesta,
+      'Mejora propuesta': valor('mejora'),
+      'Ajuste generado (lo llena el equipo)': '',
+    };
+    Object.entries(COLUMNAS).forEach(([id, col]) => { f[col] = valor(id); });
+    f['Comentario sobre las pantallas'] = r.comentario_pantallas || '';
+    // Comportamiento de uso registrado por la app en este mismo dispositivo (punto 4.3)
     if (r.version === 'app') {
-      // Comportamiento de uso registrado por la app en este mismo dispositivo (punto 4.3)
       const app = leer(CLAVE_APP, {}) || {};
       const u = app.uso || { vistas: [] };
       const nombres = { bienvenida: 'Bienvenida', registro: 'Registro', ingresar: 'Ingreso', diagnostico: 'Diagnóstico', resultado: 'Resultado',
         inicio: 'Inicio', leccion: 'Lección', explorar: 'Explorar', perfil: 'Perfil', planes: 'Planes', panel: 'Panel del colegio' };
-      f['uso: pantallas visitadas'] = (u.vistas || []).filter((v) => nombres[v]).map((v) => nombres[v]).join('; ');
-      f['uso: lecciones completadas'] = (u.lecciones || []).length;
-      f['uso: minutos en la app'] = u.ultimo ? Math.max(1, Math.round((u.ultimo - u.inicio) / 60000)) : 0;
+      f['Uso: pantallas visitadas'] = (u.vistas || []).filter((v) => nombres[v]).map((v) => nombres[v]).join('; ');
+      f['Uso: lecciones completadas'] = (u.lecciones || []).length;
+      f['Uso: minutos en la app'] = u.ultimo ? Math.max(1, Math.round((u.ultimo - u.inicio) / 60000)) : 0;
+    } else {
+      f['Uso: pantallas visitadas'] = 'No aplica';
+      f['Uso: lecciones completadas'] = 'No aplica';
+      f['Uso: minutos en la app'] = 'No aplica';
     }
+    const prefijo = r.version === 'app' ? 'App · ' : 'Boceto · ';
+    EVALUACION.pantallas[r.version].forEach(([id, n]) => { f[prefijo + n] = r.pantallas[id]; });
     return f;
   }
 
@@ -162,7 +182,7 @@
   // Resultados guardados en este dispositivo (evaluar.html#resultados)
   function resultados() {
     const todas = leer(CLAVE_EVAL, []);
-    const por = (v) => todas.filter((f) => String(f.version).startsWith(v)).length;
+    const por = (v) => todas.filter((f) => String(f['Versión'] ?? f.version).startsWith(v)).length;
     pasoGuia.textContent = 'Resultados';
     raiz.innerHTML = `<section class="tarjeta pregunta"><h1>Evaluaciones en este dispositivo</h1>
       <div class="stats"><div><b>${todas.length}</b><span>Total</span></div><div><b>${por('Baja')}</b><span>Bocetos</span></div><div><b>${por('Alta')}</b><span>App</span></div></div>
