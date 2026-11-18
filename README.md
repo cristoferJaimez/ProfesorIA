@@ -36,8 +36,8 @@ Proyecto académico del módulo Emprendimiento de Base Tecnológica (Politécnic
 | `bocetos.html` | Prototipo de baja resolución: mapa de navegación y 10 bocetos |
 | `app.html` | Prototipo de alta resolución (app en el celular) |
 | `app.html?demo=1` | La app con un docente de ejemplo, sin registrarse |
-| `app.html?evaluar=bocetos` / `?evaluar=app` | Evaluación con la versión ya elegida |
-| `app.html#/resultados` | Evaluaciones guardadas en el dispositivo y descarga en CSV |
+| `evaluar.html?version=bocetos` / `?version=app` | Evaluación (página propia, fuera del celular) |
+| `evaluar.html#resultados` | Evaluaciones guardadas en el dispositivo y descarga en CSV |
 
 Para verlo en local: `python -m http.server 8765` y abrir `http://localhost:8765`.
 

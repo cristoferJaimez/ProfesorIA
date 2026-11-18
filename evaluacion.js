@@ -44,18 +44,27 @@ const EVALUACION = {
       'Recordatorios', 'Planes y panel del colegio'],
   },
 
-  // {forma} se reemplaza según la versión evaluada
-  forma: { bocetos: 'los bocetos en papel', app: 'la app en el celular' },
-
+  // versiones: en qué evaluación aparece cada pregunta (sin el campo, aparece en las dos)
   preguntas: [
     { id: 'f_utiles', punto: '1. Funcionalidades', tipo: 'multiple', p: '¿Qué funcionalidades le parecen más útiles para su trabajo?', ayuda: 'Puede marcar varias', o: 'funcionalidades' },
     { id: 'f_falta', punto: '1. Funcionalidades', tipo: 'texto', p: '¿Qué funcionalidad le falta a ProfeIA?', opcional: true },
     { id: 'f_sobra', punto: '1. Funcionalidades', tipo: 'texto', p: '¿Qué funcionalidad sobra o no entendió?', opcional: true },
-    { id: 'd_representacion', punto: '2. Dimensiones: representación', tipo: 'escala', p: '¿La forma del prototipo ({forma}) le permitió entender cómo funcionaría ProfeIA?', min: 'Nada', max: 'Totalmente' },
-    { id: 'd_precision', punto: '2. Dimensiones: precisión', tipo: 'escala', p: '¿El nivel de detalle (textos, imágenes y contenido) fue suficiente para entender cada pantalla?', min: 'Insuficiente', max: 'Suficiente' },
-    { id: 'd_interactividad', punto: '2. Dimensiones: interactividad', tipo: 'escala', p: '¿Qué tan fácil fue moverse entre las pantallas e interactuar con el prototipo?', min: 'Muy difícil', max: 'Muy fácil' },
-    { id: 'd_evolucion', punto: '2. Dimensiones: evolución', tipo: 'unica', p: '¿En qué estado está el prototipo para la siguiente versión?',
-      o: ['Listo, solo detalles menores', 'Necesita algunos ajustes', 'Necesita cambios grandes'] },
+
+    // Bocetos: se valida la idea y el flujo, no el detalle visual
+    { id: 'd_representacion', versiones: ['bocetos'], punto: '2. Dimensiones: representación', tipo: 'escala', p: '¿Los bocetos le permitieron entender la idea general de ProfeIA?', min: 'Nada', max: 'Totalmente' },
+    { id: 'd_precision', versiones: ['bocetos'], punto: '2. Dimensiones: precisión', tipo: 'unica', p: '¿Qué tanto detalle necesitaría para entender mejor las pantallas?',
+      o: ['Así es suficiente', 'Necesito ver más contenido (textos y ejemplos)', 'Necesito ver colores e imágenes reales'] },
+    { id: 'd_interactividad', versiones: ['bocetos'], punto: '2. Dimensiones: interactividad', tipo: 'escala', p: '¿El orden de las pantallas (mapa de navegación) le pareció lógico?', min: 'Confuso', max: 'Muy lógico' },
+    { id: 'd_evolucion', versiones: ['bocetos'], punto: '2. Dimensiones: evolución', tipo: 'unica', p: '¿La idea está lista para pasar a la versión digital (app)?',
+      o: ['Sí, tal como está', 'Sí, con algunos ajustes', 'No, necesita cambios grandes'] },
+
+    // App: se valida la experiencia de uso
+    { id: 'd_representacion', versiones: ['app'], punto: '2. Dimensiones: representación', tipo: 'escala', p: '¿La app en el celular le permitió entender cómo funcionaría ProfeIA?', min: 'Nada', max: 'Totalmente' },
+    { id: 'd_precision', versiones: ['app'], punto: '2. Dimensiones: precisión', tipo: 'escala', p: '¿El nivel de detalle (textos, imágenes y contenido) fue suficiente para entender cada pantalla?', min: 'Insuficiente', max: 'Suficiente' },
+    { id: 'd_interactividad', versiones: ['app'], punto: '2. Dimensiones: interactividad', tipo: 'escala', p: '¿Qué tan fácil fue moverse entre las pantallas e interactuar con la app?', min: 'Muy difícil', max: 'Muy fácil' },
+    { id: 'd_evolucion', versiones: ['app'], punto: '2. Dimensiones: evolución', tipo: 'unica', p: '¿En qué estado está la app para la siguiente versión?',
+      o: ['Lista, solo detalles menores', 'Necesita algunos ajustes', 'Necesita cambios grandes'] },
+
     { id: 'mejora', punto: '4. Mejora propuesta', tipo: 'texto', p: '¿Qué mejora le propone al prototipo?' },
   ],
 };

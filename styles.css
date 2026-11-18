@@ -32,10 +32,25 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Barra de la guía, fuera del celular: siempre se puede volver al inicio o ir a evaluar */
+.guia-barra {
+  display: flex; align-items: center; gap: 10px;
+  height: 52px; padding: 0 12px;
+  background: #0f2340; color: rgba(255, 255, 255, 0.85);
+  font-size: 0.82rem; font-weight: 700;
+}
+.guia-barra span { flex: 1; min-width: 0; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.guia-barra a { color: var(--blanco); text-decoration: none; font-weight: 800; white-space: nowrap; }
+.guia-barra .guia-btn { background: var(--amarillo); color: var(--tinta); padding: 8px 12px; border-radius: 10px; }
+@media (min-width: 600px) {
+  body { flex-direction: column; gap: 14px; }
+  .guia-barra { width: 390px; height: auto; padding: 10px 14px; border-radius: 14px; }
+}
+
 .telefono {
   position: relative;
   width: 100%;
-  height: 100dvh;
+  height: calc(100dvh - 52px);
   background: var(--fondo);
   display: flex;
   flex-direction: column;

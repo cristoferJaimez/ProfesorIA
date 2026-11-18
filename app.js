@@ -35,11 +35,9 @@
     E.completadas = [];
   }
 
-  // Enlace directo a la evaluación (?evaluar=1), útil para compartir con los participantes
-  // ?evaluar=bocetos | ?evaluar=app abre la evaluación con la versión ya elegida
+  // Enlaces antiguos: ?evaluar=... lleva a evaluar.html y ?bocetos a bocetos.html
   const PARAMS = new URLSearchParams(location.search);
-  const VERSION_INICIAL = ['bocetos', 'app'].includes(PARAMS.get('evaluar')) ? PARAMS.get('evaluar') : 'app';
-  if (PARAMS.has('evaluar') && !location.hash) location.hash = '#/evaluar';
+  if (PARAMS.has('evaluar')) location.replace('evaluar.html?version=' + (PARAMS.get('evaluar') === 'bocetos' ? 'bocetos' : 'app'));
   if (PARAMS.has('bocetos')) location.replace('bocetos.html');
 
   // Guía de participantes (index.html): marca los pasos completados en este dispositivo
@@ -449,165 +447,10 @@
     </section>`;
   };
 
-  // ---------- Evaluación del prototipo (Guía 2, punto 4) ----------
-  const CLAVE_EVAL = 'profeia-evaluaciones';
-  let EV = null; // { paso, r: respuestas }
-  const evalNueva = () => ({ paso: 0, r: { version: VERSION_INICIAL, pantallas: {} } });
-  const leerEvaluaciones = () => { try { return JSON.parse(localStorage.getItem(CLAVE_EVAL) || '[]'); } catch (e) { console.warn(e); return []; } };
-  const guardarEvaluacion = (fila) => {
-    const todas = leerEvaluaciones();
-    todas.push(fila);
-    try { localStorage.setItem(CLAVE_EVAL, JSON.stringify(todas)); } catch (e) { console.warn('No se pudo guardar la evaluación en el dispositivo.', e); }
-  };
-  const textoPregunta = (q) => q.p.replace('{forma}', EVALUACION.forma[EV.r.version]);
-
-  function pasoListo() {
-    const r = EV.r;
-    if (EV.paso === 0) return !!(r.iniciales && r.rol && r.primera_encuesta && r.version);
-    if (EV.paso === 1) return EVALUACION.pantallas[r.version].every(([id]) => r.pantallas[id]);
-    const q = EVALUACION.preguntas[EV.paso - 2];
-    if (!q) return true;
-    if (q.opcional) return true;
-    const v = r[q.id];
-    return Array.isArray(v) ? v.length > 0 : !!(v && String(v).trim());
-  }
-
-  V.evaluar = () => {
-    if (!EV) EV = evalNueva();
-    const r = EV.r;
-    const total = EVALUACION.preguntas.length + 2;
-    const fin = EV.paso >= total;
-    if (fin) {
-      return `<section class="vista fin">
-        <div class="medalla" aria-hidden="true">✓</div>
-        <div class="grupo-s"><h1>¡Gracias!</h1><p class="suave">${EV.enviado ? 'Su evaluación fue enviada.' : 'Su evaluación quedó guardada en este dispositivo.'} Sus respuestas ayudan a mejorar ProfeIA.</p></div>
-        <div class="pie" style="width:100%"><a class="btn" href="index.html" style="text-decoration:none">Volver a la guía</a><button class="btn sec" data-eval-nueva>Nueva evaluación</button></div>
-      </section>`;
-    }
-    let cuerpo = '';
-    if (EV.paso === 0) {
-      const areas = ['Matemáticas', 'Lenguaje', 'Ciencias naturales', 'Ciencias sociales', 'Inglés', 'Artes', 'Educación física', 'Tecnología', 'Preescolar', 'Salud', 'Otra'];
-      const chips = (campo, ops) => `<div class="chips">${ops.map(([v, t]) => `<button class="chip ${r[campo] === v ? 'on' : ''}" data-eval-set="${campo}" data-valor="${esc(v)}">${t}</button>`).join('')}</div>`;
-      cuerpo = `<p class="tipo">Evaluación del prototipo</p><h1>Antes de empezar</h1>
-        <p class="suave pequeno">Toma unos 3 minutos. Solo pedimos sus iniciales.</p>
-        <label class="campo">Iniciales<input id="ev-iniciales" maxlength="12" placeholder="Ej.: K.G." value="${esc(r.iniciales || '')}" autocomplete="off"></label>
-        <label class="campo">Área<select id="ev-area">${areas.map((a) => `<option ${r.area === a ? 'selected' : ''}>${a}</option>`).join('')}</select></label>
-        <div class="grupo-s"><b class="pequeno">Rol</b>${chips('rol', [['Docente', 'Docente'], ['Directivo docente', 'Directivo'], ['Otro', 'Otro']])}</div>
-        <div class="grupo-s"><b class="pequeno">¿Respondió la primera encuesta de ProfeIA?</b>${chips('primera_encuesta', [['Sí', 'Sí'], ['No', 'No']])}</div>
-        <div class="grupo-s"><b class="pequeno">¿Qué versión revisó?</b>${chips('version', [['bocetos', 'Bocetos en papel'], ['app', 'App en el celular']])}</div>`;
-    } else if (EV.paso === 1) {
-      const ps = EVALUACION.pantallas[r.version];
-      cuerpo = `<p class="punto-guia">3. Implementación del prototipo</p><h2>Califique cada pantalla</h2>
-        <p class="suave pequeno">¿Qué tan clara y útil le pareció? 1 estrella = nada, 5 = mucho.</p>
-        <div class="grupo-s">${ps.map(([id, n]) => `<div class="fila-eval"><span>${n}</span><div class="estrellas" role="radiogroup" aria-label="${n}">
-          ${[1, 2, 3, 4, 5].map((k) => `<button class="${(r.pantallas[id] || 0) >= k ? 'on' : ''}" data-estrella="${id}:${k}" aria-label="${k} de 5">★</button>`).join('')}</div></div>`).join('')}</div>
-        <label class="campo">¿Alguna pantalla le pareció confusa? ¿Cuál y por qué? (opcional)<textarea id="ev-coment" style="min-height:80px">${esc(r.comentario_pantallas || '')}</textarea></label>`;
-    } else {
-      const q = EVALUACION.preguntas[EV.paso - 2];
-      const v = r[q.id];
-      let campo = '';
-      if (q.tipo === 'escala') {
-        campo = `<div class="escala">${[1, 2, 3, 4, 5].map((k) => `<button class="${v === k ? 'on' : ''}" data-eval-set="${q.id}" data-valor="${k}" data-num>${k}</button>`).join('')}</div>
-          <div class="extremos"><span>${q.min}</span><span>${q.max}</span></div>`;
-      } else if (q.tipo === 'unica') {
-        campo = `<div class="grupo">${q.o.map((o, k) => `<button class="opcion ${v === o ? 'on' : ''}" data-eval-set="${q.id}" data-valor="${esc(o)}"><span class="letra">${'ABCDE'[k]}</span>${o}</button>`).join('')}</div>`;
-      } else if (q.tipo === 'multiple') {
-        const ops = EVALUACION.funcionalidades[r.version];
-        const sel = v || [];
-        campo = `<div class="chips">${ops.map((o) => `<button class="chip ${sel.includes(o) ? 'on' : ''}" data-eval-multi="${q.id}" data-valor="${esc(o)}">${o}</button>`).join('')}</div>`;
-      } else {
-        campo = `<textarea id="ev-texto" data-campo="${q.id}" placeholder="Escriba aquí…">${esc(v || '')}</textarea>`;
-      }
-      cuerpo = `<p class="punto-guia">${q.punto}</p><h2>${textoPregunta(q)}</h2>${q.ayuda ? `<p class="suave pequeno">${q.ayuda}</p>` : ''}${q.opcional ? '<p class="suave pequeno">Opcional</p>' : ''}${campo}`;
-    }
-    const ultimo = EV.paso === total - 1;
-    return `<section class="vista leccion">
-      <div class="cabeza"><button class="cerrar" data-eval-atras aria-label="Volver">‹</button>
-        <div class="progreso"><span style="width:${(EV.paso / total) * 100}%"></span></div></div>
-      <div class="paso">${cuerpo}</div>
-      <div class="pie"><button class="btn ${ultimo ? 'verde' : ''}" data-eval-sig ${pasoListo() ? '' : 'disabled'}>${ultimo ? 'Enviar evaluación' : 'Siguiente'}</button></div>
-    </section>`;
-  };
-
-  function filaEvaluacion() {
-    const r = EV.r;
-    const fila = { fecha: new Date().toISOString(), version: r.version === 'app' ? 'Alta resolución (app)' : 'Baja resolución (bocetos)',
-      iniciales: r.iniciales, area: r.area, rol: r.rol, primera_encuesta: r.primera_encuesta };
-    EVALUACION.pantallas[r.version].forEach(([id, n]) => { fila['pantalla: ' + n] = r.pantallas[id]; });
-    fila.comentario_pantallas = r.comentario_pantallas || '';
-    if (r.version === 'app') {
-      const nombres = { bienvenida: 'Bienvenida', registro: 'Registro', ingresar: 'Ingreso', diagnostico: 'Diagnóstico', resultado: 'Resultado',
-        inicio: 'Inicio', leccion: 'Lección', explorar: 'Explorar', perfil: 'Perfil', planes: 'Planes', panel: 'Panel del colegio' };
-      const u = E.uso || { vistas: [] };
-      fila['uso: pantallas visitadas'] = u.vistas.filter((v) => nombres[v]).map((v) => nombres[v]).join('; ');
-      fila['uso: lecciones completadas'] = (u.lecciones || []).length;
-      fila['uso: minutos en la app'] = u.ultimo ? Math.max(1, Math.round((u.ultimo - u.inicio) / 60000)) : 0;
-    }
-    EVALUACION.preguntas.forEach((q) => {
-      const v = r[q.id];
-      fila[q.id] = Array.isArray(v) ? v.join('; ') : (v ?? '');
-    });
-    return fila;
-  }
-
-  async function enviarEvaluacion() {
-    const fila = filaEvaluacion();
-    guardarEvaluacion(fila);
-    marcarGuia(EV.r.version === 'app' ? 'evalApp' : 'evalBocetos');
-    EV.enviado = false;
-    if (ENDPOINT_EVALUACION) {
-      try {
-        await fetch(ENDPOINT_EVALUACION, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(fila) });
-        EV.enviado = true;
-      } catch (e) { console.warn('No se pudo enviar; quedó guardada en el dispositivo.', e); }
-    }
-    EV.paso += 1;
-    render();
-  }
-
-  function capturarTextoEval() {
-    if (!EV) return;
-    const ini = document.getElementById('ev-iniciales');
-    if (ini) EV.r.iniciales = ini.value.trim();
-    const area = document.getElementById('ev-area');
-    if (area) EV.r.area = area.value;
-    const com = document.getElementById('ev-coment');
-    if (com) EV.r.comentario_pantallas = com.value.trim();
-    const tx = document.getElementById('ev-texto');
-    if (tx) EV.r[tx.dataset.campo] = tx.value.trim();
-  }
-
-  // Los bocetos se ven en bocetos.html, fuera del marco de celular
+  // ---------- Evaluación y bocetos: páginas propias, fuera del marco de celular ----------
+  V.evaluar = () => { location.href = 'evaluar.html?version=app'; return ''; };
+  V.resultados = () => { location.href = 'evaluar.html#resultados'; return ''; };
   V.bocetos = () => { location.replace('bocetos.html'); return ''; };
-
-  // Resultados guardados en este dispositivo (respaldo y evidencia)
-  V.resultados = () => {
-    const todas = leerEvaluaciones();
-    const por = (v) => todas.filter((f) => f.version.startsWith(v)).length;
-    return `<section class="vista">
-      <div class="cabeza"><button class="cerrar" data-ir="#/bienvenida" aria-label="Volver">‹</button><h2>Evaluaciones</h2></div>
-      <div class="stats">
-        <div class="stat"><b>${todas.length}</b><span>Total</span></div>
-        <div class="stat"><b>${por('Baja')}</b><span>Bocetos</span></div>
-        <div class="stat"><b>${por('Alta')}</b><span>App</span></div>
-      </div>
-      <p class="suave pequeno">${ENDPOINT_EVALUACION ? 'Las evaluaciones se envían a la hoja de Google Sheets y además quedan aquí como respaldo.' : 'Aún no hay hoja de Google Sheets conectada: las evaluaciones solo están en este dispositivo. Descárguelas antes de borrar los datos del navegador.'}</p>
-      <div class="pie"><button class="btn" data-descargar-csv ${todas.length ? '' : 'disabled'}>Descargar en Excel (CSV)</button></div>
-    </section>`;
-  };
-
-  function descargarCSV() {
-    const todas = leerEvaluaciones();
-    const cols = [...new Set(todas.flatMap((f) => Object.keys(f)))];
-    const celda = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-    const csv = '﻿' + [cols.map(celda).join(';'), ...todas.map((f) => cols.map((c) => celda(f[c])).join(';'))].join('\r\n');
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-    a.download = 'ProfeIA - evaluaciones.csv';
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-    avisar('Descargado');
-  }
 
   // ---------- Enrutador ----------
   const TABS = { inicio: ['⌂', 'Inicio'], explorar: ['◎', 'Explorar'], perfil: ['◉', 'Perfil'] };
@@ -623,7 +466,7 @@
     if (E.usuario && !['evaluar', 'resultados'].includes(vista)) registrarUso(vista);
     // Solo se vuelve arriba (y se anima la entrada) al cambiar de pantalla o de paso;
     // al seleccionar algo dentro de la misma pantalla se conserva la posición.
-    const llave = `${location.hash}|${L ? L.paso : ''}|${EV ? EV.paso : ''}|${vista === 'explorar' ? seccion : ''}`;
+    const llave = `${location.hash}|${L ? L.paso : ''}|${vista === 'explorar' ? seccion : ''}`;
     const misma = llave === render.llave;
     const pos = app.scrollTop;
     render.llave = llave;
@@ -669,47 +512,11 @@
     if (!b) return;
     const d = b.dataset;
     if ('cerrarHoja' in d) return cerrarHoja();
-    // Evaluación
-    if (d.evalSet) {
-      capturarTextoEval();
-      EV.r[d.evalSet] = 'num' in d ? Number(d.valor) : d.valor;
-      if (d.evalSet === 'version') EV.r.pantallas = {};
-      return render();
-    }
-    if (d.evalMulti) {
-      capturarTextoEval();
-      const sel = EV.r[d.evalMulti] || (EV.r[d.evalMulti] = []);
-      const i = sel.indexOf(d.valor);
-      if (i >= 0) sel.splice(i, 1); else sel.push(d.valor);
-      return render();
-    }
-    if (d.estrella) {
-      capturarTextoEval();
-      const [pid, k] = d.estrella.split(':');
-      EV.r.pantallas[pid] = Number(k);
-      return render();
-    }
-    if ('evalSig' in d) {
-      capturarTextoEval();
-      if (!pasoListo()) return avisar('Complete este paso para continuar');
-      if (EV.paso === EVALUACION.preguntas.length + 1) return enviarEvaluacion();
-      EV.paso += 1;
-      return render();
-    }
-    if ('evalAtras' in d) {
-      capturarTextoEval();
-      if (EV.paso === 0) return ir(E.usuario ? '#/inicio' : '#/bienvenida');
-      EV.paso -= 1;
-      return render();
-    }
     if ('nuevaRuta' in d) {
       E.ruta = DATOS.lecciones.filter((x) => !E.completadas.includes(x.id)).slice(0, 5).map((x) => x.id);
       E.numRuta = (E.numRuta || 1) + 1;
       guardar(); avisar(`Ruta ${E.numRuta} lista`); return render();
     }
-    if ('evalNueva' in d) { EV = evalNueva(); return render(); }
-    if ('evaluarBocetos' in d) { EV = evalNueva(); EV.r.version = 'bocetos'; return ir('#/evaluar'); }
-    if ('descargarCsv' in d) return descargarCSV();
     if (d.ir) return ir(d.ir);
     if ('atras' in d) return history.back();
     if (d.accion && ACCIONES[d.accion]) return ACCIONES[d.accion]();
@@ -763,11 +570,6 @@
 
   app.addEventListener('input', (ev) => {
     if (ev.target.id === 'mi-prompt' && L) L.texto = ev.target.value;
-    if (EV && ['ev-iniciales', 'ev-texto'].includes(ev.target.id)) {
-      capturarTextoEval();
-      const b = app.querySelector('[data-eval-sig]');
-      if (b) b.disabled = !pasoListo();
-    }
   });
   app.addEventListener('change', (ev) => {
     if (ev.target.id === 'rec-on') {

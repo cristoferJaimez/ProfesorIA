@@ -1,6 +1,6 @@
 # Conectar la evaluación con Google Sheets
 
-La evaluación del prototipo (`#/evaluar`) envía cada respuesta como una fila a una hoja de Google Sheets. Se configura una sola vez, en unos 5 minutos.
+La evaluación del prototipo (`evaluar.html`) envía cada respuesta como una fila a una hoja de Google Sheets. Se configura una sola vez, en unos 5 minutos.
 
 ## Pasos
 
@@ -23,18 +23,22 @@ Envíe un solo enlace: `https://cristoferjaimez.github.io/ProfesorIA/`. Es una g
 
 ## Respaldo
 
-Cada evaluación también se guarda en el dispositivo donde se respondió. En `#/resultados` se ven los totales y se descargan en CSV (se abre en Excel). Sirve si se hacen sesiones presenciales en el celular del equipo o si todavía no se ha conectado la hoja.
+Cada evaluación también se guarda en el dispositivo donde se respondió. En `evaluar.html#resultados` se ven los totales y se descargan en CSV (se abre en Excel). Sirve si se hacen sesiones presenciales en el celular del equipo o si todavía no se ha conectado la hoja.
 
 ## Qué valida cada pregunta (Guía 2)
 
-| Bloque | Punto de la guía |
-|---|---|
-| Calificación de cada pantalla (1 a 5) | 3. Implementación del prototipo |
-| Funcionalidades más útiles, faltantes y sobrantes | 1. Funcionalidades |
-| Representación, precisión e interactividad (1 a 5) | 2. Dimensiones |
-| Estado para la siguiente versión | 2. Dimensiones: evolución |
-| Mejora propuesta | 4. Tablas de sesiones (columna «Mejora propuesta») |
-| Uso: pantallas visitadas, lecciones completadas y minutos (solo app) | 4.3 Comportamiento de los participantes |
+Las preguntas de dimensiones cambian según la versión, porque los bocetos a mano no se juzgan por su detalle visual.
+
+| Punto de la guía | Bocetos (baja resolución) | App (alta resolución) |
+|---|---|---|
+| 3. Implementación | ¿Entiende para qué sirve cada pantalla? (sí / más o menos / no) | Estrellas de 1 a 5 por pantalla |
+| 1. Funcionalidades | Más útiles, faltantes y sobrantes | Igual |
+| 2. Representación | ¿Los bocetos permiten entender la idea? (1 a 5) | ¿La app permite entender cómo funcionaría? (1 a 5) |
+| 2. Precisión | ¿Qué detalle necesitaría? (opciones) | ¿El detalle fue suficiente? (1 a 5) |
+| 2. Interactividad | ¿El orden de las pantallas es lógico? (1 a 5) | ¿Qué tan fácil fue moverse e interactuar? (1 a 5) |
+| 2. Evolución | ¿Lista para pasar a la versión digital? | ¿En qué estado está para la siguiente versión? |
+| 4. Mejora propuesta | Abierta | Abierta |
+| 4.3 Comportamiento | No aplica | Pantallas visitadas, lecciones completadas y minutos |
 
 ## Privacidad
 
